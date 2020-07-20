@@ -50,6 +50,7 @@ const handler = nc<NextApiRequest, NextApiResponse>().get(async (req, res) => {
         });
       });
 
+    console.log(currentPage);
     currentPage++;
   }
 
