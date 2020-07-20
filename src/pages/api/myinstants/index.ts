@@ -9,6 +9,9 @@ const handler = nc<NextApiRequest, NextApiResponse>().get(async (req, res) => {
 
   if (cacheExist) {
     const jsonToReturn = fs.readFileSync('./local-data/myinstants.json');
+
+    const jsonParsed = JSON.parse(jsonToReturn.toString());
+
     return res.json(jsonToReturn);
   }
 
@@ -18,41 +21,46 @@ const handler = nc<NextApiRequest, NextApiResponse>().get(async (req, res) => {
   const soundsToSave = [];
 
   while (currentPage <= lastPage) {
-    console.log(`Load page ${currentPage}`);
+    try {
+      console.log(`Load page ${currentPage}`);
 
-    const { data } = await Axios.get(
-      `https://www.myinstants.com/index/br/?page=${currentPage}`
-    );
+      const { data } = await Axios.get(
+        `https://www.myinstants.com/index/br/?page=${currentPage}`
+      );
 
-    const $ = cheerio.load(data);
+      const $ = cheerio.load(data);
 
-    if (currentPage === 1) {
-      const lastPageHtml = $('#results-pagination')
-        .find('.hide-on-small-only')
-        .last()
-        .find('a')
-        .html();
+      if (currentPage === 1) {
+        const lastPageHtml = $('#results-pagination')
+          .find('.hide-on-small-only')
+          .last()
+          .find('a')
+          .html();
 
-      lastPage = Number(lastPageHtml);
-    }
+        lastPage = Number(lastPageHtml);
+      }
 
-    $('#instants_container')
-      .find('.instant')
-      .map((i, el) => {
-        const soundPath = $(el)
-          .find('.small-button')
-          .attr('onmousedown')
-          .replace("play('", '')
-          .replace("')", '');
-        const soundName = $(el).find('.instant-link').html();
+      $('#instants_container')
+        .find('.instant')
+        .map((i, el) => {
+          const soundPath = $(el)
+            .find('.small-button')
+            .attr('onmousedown')
+            .replace("play('", '')
+            .replace("')", '');
+          const soundName = $(el).find('.instant-link').text();
 
-        soundsToSave.push({
-          name: soundName,
-          link: `https://www.myinstants.com${soundPath}`,
+          soundsToSave.push({
+            name: soundName,
+            url: `https://www.myinstants.com${soundPath}`,
+          });
         });
-      });
 
-    currentPage++;
+      currentPage++;
+    } catch (e) {
+      console.log(`Error page ${e.message}`);
+      continue;
+    }
   }
 
   fs.writeFileSync(
