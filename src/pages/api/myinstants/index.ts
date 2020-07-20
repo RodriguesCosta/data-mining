@@ -1,10 +1,7 @@
-import microCors from 'micro-cors';
 import Axios from 'axios';
 import cheerio from 'cheerio';
 import { NextApiRequest, NextApiResponse } from 'next';
 import nc from 'next-connect';
-
-const cors = microCors();
 
 const CACHE_CONTROL_HEADER_VALUE =
   'max-age=0, s-maxage=43200, stale-while-revalidate, public';
@@ -18,6 +15,8 @@ const handler = nc<NextApiRequest, NextApiResponse>().get(async (req, res) => {
   const soundsToSave = [];
 
   while (currentPage < lastPage) {
+    console.log(`Load page ${currentPage}`);
+
     const { data } = await Axios.get(
       `https://www.myinstants.com/index/br/?page=${currentPage}`
     );
@@ -50,11 +49,10 @@ const handler = nc<NextApiRequest, NextApiResponse>().get(async (req, res) => {
         });
       });
 
-    console.log(currentPage);
     currentPage++;
   }
 
   res.json(soundsToSave);
 });
 
-export default cors(handler);
+export default handler;
