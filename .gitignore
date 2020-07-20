@@ -16,3 +16,6 @@ yarn-error.log*
 
 # misc
 .DS_Store
+
+# local-data
+local-data
